@@ -3,11 +3,6 @@
 @file:test.py
 @time:2021/02/04
 """
-"""
-@author:32369
-@file:test.py
-@time:2021/02/02
-"""
 import datetime
 import time
 
@@ -197,15 +192,6 @@ def get_parameter_number(model):
 print(get_parameter_number(model))
 
 
-# 定义日志（data文件夹下）
-def write_log(w):
-    file_name = 'data/' + datetime.date.today().strftime('%m%d') + "_{}.log".format("deepfm")
-    t0 = datetime.datetime.now().strftime('%H:%M:%S')
-    info = "{} : {}".format(t0, w)
-    print(info)
-    with open(file_name, 'a') as f:
-        f.write(info + 'n')
-
 
 def train_and_eval(model, train_loader, valid_loader, epochs, device):
     best_auc = 0.0
@@ -213,7 +199,6 @@ def train_and_eval(model, train_loader, valid_loader, epochs, device):
         """训练部分"""
         model.train()
         print("Current lr : {}".format(optimizer.state_dict()['param_groups'][0]['lr']))
-        write_log('Epoch: {}'.format(_ + 1))
         train_loss_sum = 0.0
         start_time = time.time()
         for idx, x in enumerate(train_loader):
@@ -225,10 +210,7 @@ def train_and_eval(model, train_loader, valid_loader, epochs, device):
             loss.backward()
             optimizer.step()
 
-            train_loss_sum += loss.cpu().item()
-            if (idx + 1) % 50 == 0 or (idx + 1) == len(train_loader):
-                write_log("Epoch {:04d} | Step {:04d} / {} | Loss {:.4f} | Time {:.4f}".format(
-                    _ + 1, idx + 1, len(train_loader), train_loss_sum / (idx + 1), time.time() - start_time))
+            train_loss_sum += loss.cpu().item()          
         scheduler.step()
         """推断部分"""
         model.eval()
@@ -244,7 +226,6 @@ def train_and_eval(model, train_loader, valid_loader, epochs, device):
         if cur_auc > best_auc:
             best_auc = cur_auc
             torch.save(model.state_dict(), "data/deepfm_best.pth")
-        write_log('Current AUC: %.6f, Best AUC: %.6fn' % (cur_auc, best_auc))
 
 
 train_and_eval(model, train_loader, valid_loader, 30, device)
